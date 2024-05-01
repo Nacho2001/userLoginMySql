@@ -1,0 +1,32 @@
+## Version de sintaxis de compose
+version: '3.1'
+
+services:
+    ## Contenedores a iniciar
+    db:
+        ## Imagen que utilizará
+        image: mariadb
+        ## Variables de entorno
+        environment:
+            ## Clave de usuario ROOT
+            MARIADB_ROOT_PASSWORD: 'mysqlAPI'
+            ## Base de datos a crear
+            MARIADB_DATABASE: 'apiLogin'
+            ## Añade un usuario adicional
+            MARIADB_USER: 'apiAdmin'
+            ## Contraseña del usuario anterior
+            MARIADB_PASSWORD: 'mysqlAPI'
+        ## Volumenes a utilizar
+        volumes:
+            ## Almacen de datos de mariadb
+            - mariadb_data:/var/lib/mysql
+            ## Directorio para levantar la levantar la base de datos al inicio del container
+            - ./db_init:/docker-entrypoint-initdb.d
+        ## Puerto a utilizar
+        ports:
+            ## Se utiliza el puerto 27030 del equipo local y el 3306 del server mariadb
+            - "27030:3306"
+## Declaracion de volumenes
+volumes:
+    ## No se especifica otro directorio para este volumen
+    mariadb_data:
