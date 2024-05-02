@@ -12,9 +12,9 @@ router.get('/', controller.getUsers);
 router.get('/:usuario', controller.getUniqueUser);
 
 // Borrar usuario
-router.delete('/:id', controller.deleteUser);
+router.delete('/:usuario', controller.deleteUser);
 
 // Actualizar usuario
-router.put('/:id', controller.updateUser);
+router.put('/:usuario', controller.updateUser);
 
 module.exports = router

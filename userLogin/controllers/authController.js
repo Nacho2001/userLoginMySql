@@ -1,8 +1,11 @@
+// Dependencias
 const jwt = require('jsonwebtoken');
 const User = require('../model/modelUsuario');
 const hashing = require('../middlewares/hashPasword');
 
+// Metodo de autenticación
 exports.autenticacion = async (req,res) => {
+    // Obtiene username y la clave del body
     const username = req.body.username;
     const password = req.body.password;
     try {
@@ -16,19 +19,21 @@ exports.autenticacion = async (req,res) => {
         if (usuario == [] || usuario == "" | usuario == undefined){
             res.status(401).json({
                 estado:"Error",
-                mensaje:"Nombre de Usuario o Contraseña incorrectos"
+                mensaje:"Las credenciales ingresadas no son correctas"
             })
         } else {
             // Verifica la contraseña del usuario, si no es igual tambien retorna un error
             let claveGuardada = usuario[0].dataValues.password
+            // Compara la clave del usuario con la clave ingresada
             let correcta = hashing.checkPassword(password, claveGuardada)
+            // Si la clave no coincide, no permite el acceso
             if (correcta != true){
                 res.status(401).json({
                     estado:"Error",
                     mensaje:"Nombre de Usuario o Contraseña incorrectos!"
                 })
             } else {
-                // Crea el token para el cliente si las credenciales son correctas
+                // En cambio, si las credenciales con correctas, devuelve un token de acceso, valido por 1 hora
                 const token = jwt.sign({userID: usuario.id}, 'securePassword', { expiresIn: '1h'})
                 res.status(200).json({
                     estado:"Ok",
@@ -44,7 +49,3 @@ exports.autenticacion = async (req,res) => {
         })
     }
 }
-
-// Laboratorios pendientes: 
-// -- Emitir token nuevo luego de que haya expirado el anterior
-// -- Revocar un token

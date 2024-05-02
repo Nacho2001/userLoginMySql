@@ -1,18 +1,23 @@
+// Dependencias
 const User = require("../model/modelUsuario");
 const TokenCheck = require("../middlewares/jwt");
 const hashing = require("../middlewares/hashPasword");
 
 // Obtener todos los usuarios
 exports.getUsers = async (req, res) => {
+    // Compara token de usuario
     const tokenValido = TokenCheck.verificacion(req,res);
     if (tokenValido == true) {
+        // Si el token fue validado, realiza la petición a la base
         try {
+            // Utiliza el método finAll para buscar otods los usuarios
             const users = await User.findAll()
             res.status(200).json({
                 estado:'Ok',
                 users
             })
         } catch (error) {
+            // Si hubo un error en la peticion, muestra el error
             console.error(error);
             res.status(500).json({
                 estado:'Error',
@@ -22,23 +27,25 @@ exports.getUsers = async (req, res) => {
     }
 }
 
-// Busqueda de usuario por id
+// Busqueda de usuario por username
 exports.getUniqueUser = async (req,res) => {
     const tokenValido = TokenCheck.verificacion(req,res);
     if (tokenValido == true) {
         const usuarioSolicitado = req.params.usuario
-        try { // Busca en la BD un usuario por la clave primaria, en este caso, el id
+        try { // Busca en la BD un usuario por el nombre de usuario, el cual es un valor único
             const usuarioBuscado = await User.findAll({
                 where: {
                     username: usuarioSolicitado
                 }
             });
-            if (usuarioBuscado == null){
+            // Si la respuesta de la base esta en blanco, entonces no existe el usuario buscado
+            if (usuarioBuscado == null || usuarioBuscado == [] || usuarioBuscado == ""){
                 res.status(404).json({
                     estado:"error",
                     mensaje:"No se ha encontrado el usuario solicitado"
                 })
             } else {
+                // Si el usuario buscado existe, envia los datos al cliente
                 res.status(200).json({ // Si tuvo exito, devuelve el usuario solicitado
                     estado: "Ok",
                     usuarioBuscado
@@ -54,6 +61,7 @@ exports.getUniqueUser = async (req,res) => {
     }
 }
 
+// Método para crear usuarios
 exports.createUser = async(req,res )=> {
     try {
         // Verifica si el usuario ya está creado
@@ -64,6 +72,7 @@ exports.createUser = async(req,res )=> {
             }
         });
         if (searchUsername.length == 0) {
+            // Busca al usuario por email, otro valor que no de debe repetirse
             const searchEmail = await User.findAll({
                 where:{
                     email: commingUser.email
@@ -74,7 +83,6 @@ exports.createUser = async(req,res )=> {
                 const closedPassword = hashing.hashPassword(commingUser.password);
                 // Luego reemplaza la clave no encriptada por la clave generada
                 commingUser.password = closedPassword
-                console.log(commingUser);
                 // Si el usuario no existe, lo crea
                 await User.create(req.body);
                 res.status(201).json({
@@ -84,20 +92,22 @@ exports.createUser = async(req,res )=> {
             } else {
                 res.status(400).json({
                     estado:'Error',
-                    mensaje:`El email ${commingUser.username} ya se encuentra asociado a otro usuario, ingresar otro`
+                    mensaje:`El email ${commingUser.email} ya se encuentra asociado a otro usuario, ingresar otro`
                 })
             }
         } else {
+            // Si el mail ya se encuentra asociado a un usuario existente, no creará el nuevo
             res.status(400).json({
                 estado:'Error',
                 mensaje:`El nombre de usuario ${commingUser.username} ya se encuentra ocupado, ingresar otro`
             })
         }
     } catch (error) {
-        //console.error(error);
+        console.error(error);
+        // Si no pudo realizar la comprobación de los datos en la base, envia un error 500
         res.status(500).json({
             estado:"Error",
-            mensaje:'Nose han podido obtener los datos'
+            mensaje:'No se han comprobar los datos'
         })
     }
 }
@@ -106,10 +116,10 @@ exports.createUser = async(req,res )=> {
 exports.deleteUser = async (req,res) => {
     const validado = TokenCheck.verificacion(req,res);
     if (validado == true) {
-        try { // Borra un usuario con el metodo destroy, buscando el usuario que coincida con el id enviado
+        try { // Borra un usuario con el metodo destroy, buscando el usuario que coincida con el username enviado
             const usuario = await User.destroy({
                 where: {
-                    id: req.params.id
+                    username: req.params.usuario
                 }
             })
             res.status(200).json({ // Si lo pudo eliminar, devuleve un ok y el mensaje de operación exitosa
@@ -130,15 +140,13 @@ exports.deleteUser = async (req,res) => {
 exports.updateUser = async (req,res) => {
     const validado = TokenCheck.verificacion(req,res);
     if (validado == true) {
-        // Crea las contantes con el id y los datos actualizados...
-        const userId = req.params.id;
+        // Crea las contantes con el nombre y los datos actualizados...
         const dataUsuario = req.body;
-        // Para luego crear el objeto usuario listo para lanzar con el update
-        const usuario = { userId, ...dataUsuario }
-        try { // Utiliza el metodo update con la informacion actualizada donde el id coincida con el del usuario que se queiere corregir
-            await User.update({ ...usuario }, {
+        const nombreUsuario = req.params.usuario;
+        try { // Y luego utiliza el metodo update con la informacion actualizada donde el username coincida con el del usuario que se quiere corregir
+            await User.update({ ...dataUsuario }, {
                 where: { 
-                    id:userId
+                    username:nombreUsuario
                 }
             })
             res.status(200).json({

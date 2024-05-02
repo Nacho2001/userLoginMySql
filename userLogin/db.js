@@ -10,7 +10,8 @@ const sequelize = new Sequelize(
     process.env.dbPassword,
     {
         // Ubicacion de la base de datos
-        host: `${process.env.dbIP}:${process.env.dbPort}`,
+        //host: `${process.env.dbIP}:${process.env.dbPort}`,
+        host: process.env.dbIP,
         // Motor de DB
         dialect: process.env.dialect
     }

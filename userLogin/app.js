@@ -25,7 +25,7 @@ app.use(express.json());
 app.use(cors());
 
 // Configuración de los endpoints
-app.use('/user', UserRoutes);
+app.use('/users', UserRoutes);
 app.use('/login', AuthRoute);
 app.use('/register', registerRoute);
 
