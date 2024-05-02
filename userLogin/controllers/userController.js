@@ -115,17 +115,33 @@ exports.createUser = async(req,res )=> {
 // Borrar usuario
 exports.deleteUser = async (req,res) => {
     const validado = TokenCheck.verificacion(req,res);
+    const usuario = req.params.usuario
     if (validado == true) {
-        try { // Borra un usuario con el metodo destroy, buscando el usuario que coincida con el username enviado
-            const usuario = await User.destroy({
+        try {
+            // Busca el usuario que se desea eliminar
+            const usuarioBuscado = await User.findAll({
                 where: {
-                    username: req.params.usuario
+                    username: usuario
                 }
-            })
-            res.status(200).json({ // Si lo pudo eliminar, devuleve un ok y el mensaje de operación exitosa
-                estado:"Ok",
-                message:`Usuario ${usuario.username} eliminado`
-            })
+            });
+            if (usuarioBuscado == null || usuarioBuscado == [] || usuarioBuscado == ""){
+                // Si el usuario no existe, envia un error
+                res.status(404).json({
+                    estado:"error",
+                    mensaje:"No se ha encontrado el usuario a eliminar"
+                })
+            } else {
+                // Borra un usuario con el metodo destroy, buscando el usuario que coincida con el username enviado
+                await User.destroy({
+                    where: {
+                        username: usuario
+                    }
+                })
+                res.status(200).json({ // Si lo pudo eliminar, devuleve un ok y el mensaje de operación exitosa
+                    estado:"Ok",
+                    message:`Usuario ${req.params.usuario} eliminado`
+                })
+            }
         } catch(error) { // Si falló devuelve error en "estado" y los detalles del mismo por consola
             console.error(error);
             res.status(500).json({

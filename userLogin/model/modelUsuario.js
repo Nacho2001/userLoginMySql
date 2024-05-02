@@ -30,7 +30,8 @@ User.init({
     // Rol del usuario
     rol:{
         type:DataTypes.STRING,
-        allowNull:false
+        allowNull:false,
+        defaultValue:'usuario'
     }},
     {
         sequelize,
